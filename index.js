@@ -10,9 +10,9 @@ const CACHE = new NodeCache({ stdTTL: DEFAULT_TTL_SECONDS });
  * Retrieve cached value if it exists, otherwise compute it via fallback function and store it.
  * @template T
  * @param {String} key 
- * @param {(function(): T)} fallback 
+ * @param {(function(): Promise<T>)} fallback 
  * @param {Number} ttl 
- * @returns {T?}
+ * @returns {Promise<T>?}
  */
 export async function cached(key, fallback = undefined, ttl = DEFAULT_TTL_SECONDS) {
     if (!key) return null;
