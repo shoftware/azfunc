@@ -16,7 +16,7 @@ const CACHE = new NodeCache({ stdTTL: DEFAULT_TTL_SECONDS });
  */
 export async function cached(key, fallback = undefined, ttl = DEFAULT_TTL_SECONDS) {
     if (!key) return null;
-    if (!CACHE.has(key) && fallback) CACHE.set(key, fallback?.call(), ttl);
+    if (!CACHE.has(key) && fallback) CACHE.set(key, await Promise.resolve(fallback?.call()), ttl);
     return CACHE.get(key)
 }
 
@@ -24,13 +24,10 @@ export async function cached(key, fallback = undefined, ttl = DEFAULT_TTL_SECOND
  * Send response data via the context object.
  * @param {import('@azure/functions').Context} context 
  * @param {import('@azure/functions').HttpResponse} response 
- * @param {String} cacheKey 
- * @param {Number} cacheTTL 
  * @returns {import('@azure/functions').HttpResponse} response 
  */
-export function send(context, response, cacheKey = undefined, cacheTTL = DEFAULT_TTL_SECONDS) {
+export function send(context, response) {
     context.res = response;
-    if (cacheKey) CACHE.set(cacheKey, response, cacheTTL);
     return response;
 }
 
