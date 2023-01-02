@@ -1,0 +1,11 @@
+{
+  "name": "azfunc",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "index.js",
+  "bin": { "create_http_func" : "create_http_func.js" },
+  "dependencies": {
+    "@azure/functions": "^3.5.0",
+    "node-cache": "^5.1.2"
+  }
+}
