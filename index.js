@@ -1,6 +1,14 @@
 import NodeCache from 'node-cache';
 import { DEFAULT_TTL_SECONDS } from './constants.mjs';
 
+
+/**
+ * @callback AzureFunction
+ * @param {import('@azure/functions').Context} context 
+ * @param {import('@azure/functions').HttpRequest} request 
+ * @returns {import('@azure/functions').HttpResponse?} 
+ */
+
 /**
  * Global cache object.
  */
@@ -24,7 +32,7 @@ export async function cached(key, fallback = undefined, ttl = DEFAULT_TTL_SECOND
  * Send response data via the context object.
  * @param {import('@azure/functions').Context} context 
  * @param {import('@azure/functions').HttpResponse} response 
- * @returns {import('@azure/functions').HttpResponse} response 
+ * @returns {import('@azure/functions').HttpResponse} 
  */
 export function send(context, response) {
     context.res = response;
@@ -76,4 +84,26 @@ export function trace(func, tag = undefined) {
         console.log(`[${tag}] Ellapsed: ${Math.round(performance.now() - start)} ms.`);
         return result;
     }
+}
+
+/**
+ * Executes all middleware functions prior to the final listener.
+ * @param {AzureFunction[]} middleware 
+ * @param {AzureFunction} listener 
+ * @returns {AzureFunction} Azure Function wrapper
+ */
+export function use(middleware, listener) {
+    /**
+     * @param {import('@azure/functions').Context} context 
+     * @param {import('@azure/functions').HttpRequest} request 
+     */
+    return async (context, request) => {
+        for (const func of middleware) {
+            // Run each of the middleware functions in order, if any have a
+            // return value then we stop the chain.
+            const res = await Promise.resolve(func(context, request));
+            if (res) return send(context, res);
+        }
+        return send(context, await Promise.resolve(listener(context, request)));
+    };
 }
